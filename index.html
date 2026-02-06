@@ -66,7 +66,7 @@
       box-shadow: 0 12px 35px rgba(0,0,0,0.25);
       max-width: 95%;
       position: relative;
-      display: none; /* hidden until password correct */
+      display: none;
     }
 
     h1 { color: #b3003b; }
@@ -181,18 +181,34 @@
 </div>
 
 <script>
-  /* PASSWORD CHECK */
-  function checkPassword() {
-    const correctPassword = "kanjoos123"; // CHANGE THIS
-    const entered = document.getElementById("passwordInput").value;
+  /* SHA-256 function */
+  async function sha256(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  }
 
-    if (entered === correctPassword) {
+  /* Password check (password = june26th) */
+  async function checkPassword() {
+    const entered = document.getElementById("passwordInput").value;
+    const correctHash = "00a1cbe934f48af0e46b27590ff3179da83a3b430ca072b8b84948d13e8f7d94";
+
+    const enteredHash = await sha256(entered);
+
+    if (enteredHash === correctHash) {
       document.getElementById("lockScreen").style.display = "none";
       document.getElementById("card").style.display = "block";
     } else {
       document.getElementById("error").innerText = "Wrong password 😤";
     }
   }
+
+  /* Allow Enter key */
+  document.getElementById("passwordInput").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") checkPassword();
+  });
 
   /* Floating hearts */
   const heartsContainer = document.querySelector('.hearts');
